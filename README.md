@@ -1,6 +1,6 @@
 # 極光盾・產品圖工作室
 
-上傳一張隨手拍的產品照片＋產品說明，AI（Google Gemini）自動生成電商上架用的專業商品圖：
+上傳一張隨手拍的產品照片＋產品說明，AI 自動生成電商上架用的專業商品圖。**雙引擎**：Google Gemini 與 OpenAI GPT 都能用，同一張照片可以兩邊各生一張互相比較：
 
 - **白底商品圖** — 蝦皮／momo 主圖用
 - **生活情境圖** — 使用場景示意
@@ -10,9 +10,17 @@
 
 ## 第一次使用（只要做一次）
 
+**Gemini 金鑰（必備）**
+
 1. 打開 <https://aistudio.google.com/apikey>，用 Google 帳號登入
 2. 按 **Create API key**，複製那串 `AIza` 開頭的金鑰
-3. 打開本工具，貼到「步驟 1」欄位，按 **儲存金鑰**
+3. 貼到工具「步驟 1」的 Gemini 欄位，按 **儲存**（需對專案開啟計費）
+
+**OpenAI 金鑰（想用 GPT 模型才需要）**
+
+1. 打開 <https://platform.openai.com/api-keys> 建立金鑰（`sk-` 開頭）
+2. 到 Billing 儲值（最低 US$5）；部分模型需在 Settings → Organization 完成驗證
+3. 貼到工具的 OpenAI 欄位按 **儲存**
 
 金鑰只存在你自己電腦的瀏覽器裡，不會上傳到任何地方。
 
@@ -26,9 +34,10 @@
 
 ## 費用說明
 
-- 申請 API 金鑰免費，但**生圖模型需開啟付費**（2026-07 實測：Google 已關閉生圖 API 的免費額度）
-- 標準模型約 **NT$1.2／張**；高品質模型約 **NT$4〜8／張**（解析度越高越貴），仍比 OpenAI 便宜數倍
-- 怕花費失控：可到 [Google Cloud 帳單](https://console.cloud.google.com/billing) 設定每月預算提醒（例如 NT$300 就寄信通知）
+- 兩家的 API 都要付費（2026-07 實測：生圖 API 都沒有免費額度），單價如下：
+  - Gemini 標準約 **NT$1.2／張**、高品質約 **NT$4〜8／張**
+  - GPT 標準（gpt-image-1.5）約 **NT$1.3／張**、旗艦（gpt-image-2）約 **NT$3〜7／張**
+- 怕花費失控：Google 可到 [Cloud 帳單](https://console.cloud.google.com/billing) 設預算提醒；OpenAI 是預儲值制，用完自動停
 
 ## 常見問題
 
@@ -41,4 +50,4 @@
 
 ## 技術說明（給工程師看的）
 
-純前端單頁應用（`index.html`），瀏覽器直接呼叫 Gemini API（`gemini-2.5-flash-image` / `gemini-3-pro-image-preview`）做 image-to-image 生成。無後端、無資料庫；API 金鑰存於 `localStorage`。`啟動.bat` 用 Python 內建 `http.server` 起本機伺服器。
+純前端單頁應用（`index.html`），瀏覽器直接呼叫 Gemini API（`gemini-2.5-flash-image` / `gemini-3-pro-image-preview` 的 `generateContent`）或 OpenAI API（`gpt-image-1.5` / `gpt-image-2` 的 `/v1/images/edits`）做 image-to-image 生成。無後端、無資料庫；API 金鑰存於 `localStorage`。`啟動.bat` 用 Python 內建 `http.server` 起本機伺服器。
