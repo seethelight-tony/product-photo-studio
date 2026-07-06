@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>極光盾產品圖工作室</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #e6ca5c;
+    --brand-dark: #a8871f;
+    --ink: #3a3a35;
+    --ink-soft: #8a887f;
+    --bg: #faf8f2;
+    --card: #ffffff;
+    --line: #e8e4d8;
+    --danger: #b0483f;
+    --ok: #3e7d54;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans TC", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    padding: 24px 16px 80px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 28px; }
+  header h1 { font-size: 26px; font-weight: 700; letter-spacing: 2px; }
+  header h1 .dot { color: var(--brand-dark); }
+  header p { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 16px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-num {
+    background: var(--brand); color: #5c4a10;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; flex: none;
+  }
+  label { font-size: 14px; font-weight: 500; display: block; margin-bottom: 6px; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: #fff; color: var(--ink);
+  }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand); border-color: transparent; }
+  textarea { min-height: 96px; resize: vertical; }
+  .hint { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+  .hint a { color: var(--brand-dark); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 180px; }
+  button {
+    font-family: inherit; cursor: pointer; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 500;
+  }
+  .btn-small { background: #f1ede0; color: var(--ink); padding: 10px 16px; }
+  .btn-small:hover { background: #e8e2cf; }
+  .key-status { font-size: 13px; margin-top: 8px; display: none; }
+  .key-status.ok { display: block; color: var(--ok); }
+  .key-status.bad { display: block; color: var(--danger); }
+
+  .dropzone {
+    border: 2px dashed var(--line); border-radius: 12px;
+    padding: 28px; text-align: center; cursor: pointer;
+    color: var(--ink-soft); font-size: 14px; transition: all .15s;
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--brand); background: #fdfbf3; }
+  .thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .thumb { position: relative; width: 96px; height: 96px; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+  .thumb .rm {
+    position: absolute; top: -7px; right: -7px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--ink); color: #fff; font-size: 13px; line-height: 1;
+  }
+
+  .choices { display: flex; gap: 8px; flex-wrap: wrap; }
+  .choice {
+    border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; cursor: pointer;
+    background: #fff; user-select: none;
+  }
+  .choice small { display: block; color: var(--ink-soft); font-size: 12px; }
+  .choice.on { border-color: var(--brand-dark); background: #fdf7e3; }
+  .choice.on small { color: var(--brand-dark); }
+
+  .go {
+    width: 100%; padding: 15px;
+    background: var(--brand); color: #4a3b0c;
+    font-size: 17px; font-weight: 700; letter-spacing: 3px;
+    border-radius: 12px;
+  }
+  .go:hover { background: #ddbf47; }
+  .go:disabled { background: #eee7cf; color: #b3a97e; cursor: wait; }
+
+  .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 18px; }
+  .result-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .result-card .imgbox { width: 100%; aspect-ratio: 1/1; background: #f4f1e6; display: flex; align-items: center; justify-content: center; }
+  .result-card .imgbox img { width: 100%; height: 100%; object-fit: contain; }
+  .result-card .meta { padding: 10px 12px; font-size: 13px; }
+  .result-card .meta .tags { color: var(--ink-soft); font-size: 12px; }
+  .result-card .actions { display: flex; gap: 8px; padding: 0 12px 12px; }
+  .result-card .actions button, .result-card .actions a {
+    flex: 1; padding: 8px 0; text-align: center; font-size: 13px;
+    border-radius: 8px; text-decoration: none;
+  }
+  .dl { background: var(--brand); color: #4a3b0c; font-weight: 500; }
+  .redo { background: #f1ede0; color: var(--ink); }
+  .spin {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid #e8e2cf; border-top-color: var(--brand-dark);
+    animation: r 0.9s linear infinite;
+  }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .err-text { color: var(--danger); font-size: 13px; padding: 12px; text-align: center; }
+  .banner { border-radius: 10px; padding: 12px 14px; font-size: 13.5px; margin-top: 14px; display: none; }
+  .banner.show { display: block; }
+  .banner.error { background: #faecea; color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>極光盾<span class="dot">・</span>產品圖工作室</h1>
+    <p>隨手拍一張產品照，AI 幫你變成電商上架用的專業商品圖</p>
+  </header>
+
+  <div class="card" id="keyCard">
+    <h2><span class="step-num">1</span>設定 Gemini API 金鑰（第一次用才需要）</h2>
+    <div class="row">
+      <div style="flex:3">
+        <input type="password" id="apiKey" placeholder="貼上你的 API 金鑰（AIza 開頭那一串）">
+      </div>
+      <div style="flex:1; min-width:100px">
+        <button class="btn-small" style="width:100%" onclick="saveKey()">儲存金鑰</button>
+      </div>
+    </div>
+    <p class="hint">還沒有金鑰？到 <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> 用你的 Google 帳號登入 → 按「Create API key」→ 複製貼過來。免費申請、不用信用卡。金鑰只存在你自己的電腦裡。</p>
+    <p class="key-status" id="keyStatus"></p>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">2</span>上傳產品照片（1〜3 張，隨手拍即可）</h2>
+    <div class="dropzone" id="dropzone">
+      📷 點這裡選照片，或把照片直接拖進來<br>
+      <span style="font-size:12.5px">多拍幾個角度，AI 會更了解你的產品</span>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">3</span>填寫產品資訊</h2>
+    <label>產品名稱</label>
+    <input type="text" id="pName" placeholder="例：霉運去去粉 淨化沐浴包 30 入">
+    <div style="height:12px"></div>
+    <label>產品說明（越具體，圖越準）</label>
+    <textarea id="pDesc" placeholder="例：天然植物淨化沐浴包，訶子＋聖木配方，適合敏感體質日常淨化儀式。包裝是霧面夾鏈立袋、貼有品牌貼紙。"></textarea>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">4</span>選擇要生成的圖</h2>
+    <label>圖片類型（可複選）</label>
+    <div class="choices" id="typeChoices">
+      <div class="choice on" data-type="white">白底商品圖<small>蝦皮／momo 主圖</small></div>
+      <div class="choice on" data-type="lifestyle">生活情境圖<small>使用場景示意</small></div>
+      <div class="choice" data-type="mood">質感氛圍圖<small>品牌感、廣告用</small></div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="row">
+      <div>
+        <label>視覺風格</label>
+        <select id="styleSel">
+          <option value="aurora">極光盾品牌風（溫和、柔和、暖色調）</option>
+          <option value="generic">通用電商風（乾淨、現代）</option>
+        </select>
+      </div>
+      <div>
+        <label>圖片比例</label>
+        <select id="ratioSel">
+          <option value="1:1">1:1 正方形（蝦皮主圖）</option>
+          <option value="3:4">3:4 直式（社群、momo）</option>
+          <option value="16:9">16:9 橫式（官網 banner）</option>
+        </select>
+      </div>
+      <div>
+        <label>AI 模型</label>
+        <select id="modelSel">
+          <option value="gemini-2.5-flash-image">標準（快、便宜）</option>
+          <option value="gemini-3-pro-image-preview">高品質（慢、較貴）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="go" id="goBtn" onclick="generateAll()">生成產品圖</button>
+  <div class="banner" id="banner"></div>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
+const photos = [];
+
+const TYPE_INFO = {
+  white: {
+    name: "白底商品圖",
+    prompt: "Create a clean professional e-commerce product photo on a pure seamless white background (#FFFFFF). Studio-quality soft even lighting, a subtle soft natural shadow beneath the product, perfectly centered composition, the product fills about 75% of the frame. This is for a marketplace listing main image."
+  },
+  lifestyle: {
+    name: "生活情境圖",
+    prompt: "Create a realistic lifestyle photo showing this product naturally placed in a real usage scene that matches what the product is for (for example a cozy bathroom shelf, bedside table, entryway or living space). Natural daylight, believable everyday setting, the product is clearly the hero of the shot and remains sharp and readable."
+  },
+  mood: {
+    name: "質感氛圍圖",
+    prompt: "Create a premium brand-style atmospheric product photo. Tasteful minimal props that suit the product story, soft depth of field, elegant composition with generous negative space, magazine-advertisement quality."
+  }
+};
+
+const STYLE_INFO = {
+  aurora: "Overall art direction: warm, gentle, calming and safe feeling. Soft natural morning light, warm cream / beige / ivory tones, may include subtle accents of the brand's gold-yellow color #e6ca5c. Feels like a cozy daily self-care ritual brand for sensitive, gentle people. Absolutely NO dark, black, horror, spooky, harsh or high-contrast dramatic looks.",
+  generic: "Overall art direction: clean, bright, modern e-commerce photography. Neutral colors, crisp and trustworthy commercial look."
+};
+
+const el = id => document.getElementById(id);
+
+// ---- API key ----
+if (localStorage.getItem("pps_api_key")) {
+  el("apiKey").value = localStorage.getItem("pps_api_key");
+  showKeyStatus("ok", "✓ 已載入之前儲存的金鑰");
+}
+function saveKey() {
+  const k = el("apiKey").value.trim();
+  if (!k) { showKeyStatus("bad", "請先貼上金鑰再按儲存"); return; }
+  localStorage.setItem("pps_api_key", k);
+  showKeyStatus("ok", "✓ 已儲存！之後打開網頁會自動帶入");
+}
+function showKeyStatus(cls, msg) {
+  const s = el("keyStatus");
+  s.className = "key-status " + cls;
+  s.textContent = msg;
+}
+
+// ---- photo upload ----
+el("dropzone").onclick = () => el("fileInput").click();
+el("dropzone").ondragover = e => { e.preventDefault(); el("dropzone").classList.add("drag"); };
+el("dropzone").ondragleave = () => el("dropzone").classList.remove("drag");
+el("dropzone").ondrop = e => {
+  e.preventDefault();
+  el("dropzone").classList.remove("drag");
+  addFiles(e.dataTransfer.files);
+};
+el("fileInput").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+
+function addFiles(list) {
+  for (const f of list) {
+    if (!f.type.startsWith("image/")) continue;
+    if (photos.length >= 3) { showBanner("最多 3 張照片喔，已略過多的部分"); break; }
+    compressImage(f).then(dataUrl => {
+      photos.push(dataUrl);
+      renderThumbs();
+    });
+  }
+}
+function compressImage(file) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1536;
+      let { width: w, height: h } = img;
+      if (Math.max(w, h) > MAX) {
+        const s = MAX / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      res(c.toDataURL("image/jpeg", 0.9));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+function renderThumbs() {
+  el("thumbs").innerHTML = photos.map((p, i) =>
+    `<div class="thumb"><img src="${p}"><button class="rm" onclick="rmPhoto(${i})">✕</button></div>`
+  ).join("");
+}
+function rmPhoto(i) { photos.splice(i, 1); renderThumbs(); }
+
+// ---- type choices ----
+document.querySelectorAll("#typeChoices .choice").forEach(c => {
+  c.onclick = () => c.classList.toggle("on");
+});
+
+// ---- banner ----
+function showBanner(msg) {
+  const b = el("banner");
+  b.className = "banner error show";
+  b.textContent = msg;
+  setTimeout(() => b.classList.remove("show"), 6000);
+}
+
+// ---- generation ----
+function buildPrompt(type) {
+  const name = el("pName").value.trim();
+  const desc = el("pDesc").value.trim();
+  const ratio = el("ratioSel").value;
+  return [
+    "You are a professional e-commerce product photographer.",
+    "Using the product shown in the attached photo(s), " + TYPE_INFO[type].prompt,
+    STYLE_INFO[el("styleSel").value],
+    "CRITICAL: keep the product's exact shape, proportions, colors, materials, packaging and any label text IDENTICAL to the original photo. Never invent, change or distort text on the packaging. If label text would be too small to render clearly, keep it subtle and unaltered rather than redrawing it.",
+    name ? "Product name: " + name : "",
+    desc ? "Product description (for context about what it is and who uses it): " + desc : "",
+    "Image aspect ratio: " + ratio + ".",
+    "Output the image only."
+  ].filter(Boolean).join("\n");
+}
+
+async function callGemini(type) {
+  const key = el("apiKey").value.trim();
+  const model = el("modelSel").value;
+  const parts = photos.map(p => ({
+    inline_data: { mime_type: "image/jpeg", data: p.split(",")[1] }
+  }));
+  parts.push({ text: buildPrompt(type) });
+
+  const bodyFull = {
+    contents: [{ parts }],
+    generationConfig: {
+      responseModalities: ["TEXT", "IMAGE"],
+      imageConfig: { aspectRatio: el("ratioSel").value }
+    }
+  };
+
+  let resp = await postJson(model, key, bodyFull);
+  if (resp.status === 400) {
+    // 某些模型不支援 imageConfig，退回基本設定再試一次
+    const bodyBasic = { contents: [{ parts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"] } };
+    resp = await postJson(model, key, bodyBasic);
+  }
+  if (!resp.ok) throw new Error(friendlyError(resp.status, await safeText(resp)));
+
+  const data = await resp.json();
+  const outParts = data?.candidates?.[0]?.content?.parts || [];
+  for (const p of outParts) {
+    const d = p.inlineData || p.inline_data;
+    if (d?.data) return "data:" + (d.mimeType || d.mime_type || "image/png") + ";base64," + d.data;
+  }
+  throw new Error("AI 沒有回傳圖片，請調整產品說明後再試一次");
+}
+
+function postJson(model, key, body) {
+  return fetch(API_BASE + model + ":generateContent?key=" + encodeURIComponent(key), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+}
+async function safeText(r) { try { return await r.text(); } catch { return ""; } }
+
+function friendlyError(status, text) {
+  if (status === 400 && /API key/i.test(text)) return "金鑰不正確，請回步驟 1 檢查後重新儲存";
+  if (status === 403) return "金鑰沒有權限或被停用，請到 aistudio.google.com 重新建立一把";
+  if (status === 429) return "額度用完了（免費額度是每天重置，可明天再試；急用可到 Google AI Studio 開啟付費，一張約 NT$1.2）";
+  if (status === 404) return "這個模型目前不可用，請在步驟 4 換另一個 AI 模型試試";
+  if (status >= 500) return "Google 伺服器忙碌中，等一下再按一次";
+  return "發生錯誤（" + status + "）：" + text.slice(0, 160);
+}
+
+async function generateAll() {
+  const key = el("apiKey").value.trim();
+  if (!key) { showBanner("請先完成步驟 1：貼上並儲存 API 金鑰"); return; }
+  if (photos.length === 0) { showBanner("請先完成步驟 2：上傳至少一張產品照片"); return; }
+  const types = [...document.querySelectorAll("#typeChoices .choice.on")].map(c => c.dataset.type);
+  if (types.length === 0) { showBanner("請在步驟 4 至少勾選一種圖片類型"); return; }
+
+  const btn = el("goBtn");
+  btn.disabled = true;
+  btn.textContent = "生成中…約需 10〜30 秒";
+  for (const t of types) await generateOne(t);
+  btn.disabled = false;
+  btn.textContent = "生成產品圖";
+}
+
+async function generateOne(type, existingCard) {
+  const card = existingCard || makeCard(type);
+  card.querySelector(".imgbox").innerHTML = `<div class="spin"></div>`;
+  card.querySelector(".actions").style.display = "none";
+  try {
+    const url = await callGemini(type);
+    card.querySelector(".imgbox").innerHTML = `<img src="${url}">`;
+    const a = card.querySelector(".dl");
+    a.href = url;
+    a.download = (el("pName").value.trim() || "產品圖") + "_" + TYPE_INFO[type].name + "_" + Date.now() + ".png";
+    card.querySelector(".actions").style.display = "flex";
+  } catch (e) {
+    card.querySelector(".imgbox").innerHTML = `<div class="err-text">${e.message}</div>`;
+    card.querySelector(".actions").style.display = "flex";
+  }
+}
+
+function makeCard(type) {
+  const div = document.createElement("div");
+  div.className = "result-card";
+  div.innerHTML = `
+    <div class="imgbox"></div>
+    <div class="meta"><strong>${TYPE_INFO[type].name}</strong>
+      <div class="tags">${el("ratioSel").value}・${el("styleSel").selectedOptions[0].text.split("（")[0]}</div>
+    </div>
+    <div class="actions">
+      <a class="dl" href="#">⬇ 下載</a>
+      <button class="redo">↻ 重生成</button>
+    </div>`;
+  div.querySelector(".redo").onclick = () => generateOne(type, div);
+  el("results").prepend(div);
+  return div;
+}
+</script>
+</body>
+</html>
