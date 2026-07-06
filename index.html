@@ -144,6 +144,9 @@
       <div style="flex:1; min-width:100px">
         <button class="btn-small" style="width:100%" onclick="saveKey()">儲存金鑰</button>
       </div>
+      <div style="flex:1; min-width:100px">
+        <button class="btn-small" style="width:100%" id="testBtn" onclick="testKey()">🔍 測試金鑰</button>
+      </div>
     </div>
     <p class="hint">還沒有金鑰？到 <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> 用你的 Google 帳號登入 → 按「Create API key」→ 複製貼過來。免費申請、不用信用卡。金鑰只存在你自己的電腦裡。</p>
     <p class="key-status" id="keyStatus"></p>
@@ -250,6 +253,61 @@ function showKeyStatus(cls, msg) {
   s.className = "key-status " + cls;
   s.textContent = msg;
 }
+async function testKey() {
+  const k = el("apiKey").value.trim();
+  if (!k) { showKeyStatus("bad", "請先貼上金鑰再測試"); return; }
+  const btn = el("testBtn");
+  btn.disabled = true; btn.textContent = "測試中…";
+  try {
+    // 第一關：用免費的文字模型確認金鑰本身有效
+    let r = await postJson("gemini-2.5-flash-lite", k, { contents: [{ parts: [{ text: "hi" }] }] });
+    if (r.status === 404) r = await postJson("gemini-2.5-flash", k, { contents: [{ parts: [{ text: "hi" }] }] });
+    if (r.status === 400 || r.status === 403) {
+      showKeyStatus("bad", "✕ 金鑰無效或被停用，請到 aistudio.google.com/apikey 重新建立一把");
+      return;
+    }
+    if (!r.ok && r.status !== 429) {
+      showKeyStatus("bad", "✕ 測試失敗（" + r.status + "），請稍後再試");
+      return;
+    }
+    // 第二關：問生圖模型的額度狀態（用假請求探測，被拒絕也能從回應讀出原因）
+    const ir = await postJson(el("modelSel").value, k, {
+      contents: [{ parts: [{ text: "test" }] }],
+      generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+    });
+    if (ir.status === 429) {
+      showKeyStatus("bad", "△ 金鑰有效，但生圖額度不足 → " + await quotaDetail(ir));
+    } else if (ir.ok) {
+      showKeyStatus("ok", "✓ 金鑰有效，生圖額度正常，可以開始生圖！（這次測試可能已用掉 1 張額度）");
+    } else {
+      showKeyStatus("ok", "✓ 金鑰有效（生圖模型回應 " + ir.status + "，實際生成時再確認）");
+    }
+  } catch (e) {
+    showKeyStatus("bad", "✕ 連不到 Google，請檢查網路：" + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "🔍 測試金鑰";
+  }
+}
+async function quotaDetail(resp) {
+  // 解讀 Google 429 回應：額度上限是 0（免費層沒開放）還是今天用完
+  try {
+    const j = JSON.parse(await safeText(resp));
+    const details = j.error?.details || [];
+    let limit = null, retry = "";
+    for (const d of details) {
+      const t = d["@type"] || "";
+      if (t.includes("QuotaFailure") && d.violations?.length) limit = d.violations[0].quotaValue;
+      if (t.includes("RetryInfo") && d.retryDelay) retry = d.retryDelay;
+    }
+    if (limit === "0" || limit === 0)
+      return "你的帳號目前「沒有」生圖模型的免費額度（Google 已對新帳號關閉生圖免費層）。解法：① 到 aistudio.google.com 對這把金鑰的專案開啟付費（標準模型約 NT$1.2/張，先儲值最低額度即可）② 或先到 aistudio.google.com 網頁版手動生圖（網頁版免費）";
+    if (limit)
+      return "今天的免費額度（" + limit + " 次）已用完，額度每天重置，明天再來；急用可開啟付費（約 NT$1.2/張）";
+    return "生圖額度暫時不足" + (retry ? "，建議 " + retry + " 後再試" : "，稍後或明天再試；若一直出現，需到 aistudio.google.com 開啟付費（約 NT$1.2/張）");
+  } catch {
+    return "額度不足，稍後或明天再試；若一直出現，需到 aistudio.google.com 開啟付費（約 NT$1.2/張）";
+  }
+}
 
 // ---- photo upload ----
 el("dropzone").onclick = () => el("fileInput").click();
@@ -349,6 +407,7 @@ async function callGemini(type) {
     const bodyBasic = { contents: [{ parts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"] } };
     resp = await postJson(model, key, bodyBasic);
   }
+  if (resp.status === 429) throw new Error(await quotaDetail(resp));
   if (!resp.ok) throw new Error(friendlyError(resp.status, await safeText(resp)));
 
   const data = await resp.json();
@@ -372,7 +431,6 @@ async function safeText(r) { try { return await r.text(); } catch { return ""; }
 function friendlyError(status, text) {
   if (status === 400 && /API key/i.test(text)) return "金鑰不正確，請回步驟 1 檢查後重新儲存";
   if (status === 403) return "金鑰沒有權限或被停用，請到 aistudio.google.com 重新建立一把";
-  if (status === 429) return "額度用完了（免費額度是每天重置，可明天再試；急用可到 Google AI Studio 開啟付費，一張約 NT$1.2）";
   if (status === 404) return "這個模型目前不可用，請在步驟 4 換另一個 AI 模型試試";
   if (status >= 500) return "Google 伺服器忙碌中，等一下再按一次";
   return "發生錯誤（" + status + "）：" + text.slice(0, 160);
